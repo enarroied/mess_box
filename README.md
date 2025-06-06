@@ -13,7 +13,7 @@ This is a personal "mess box" – a collection of small code snippets, drafts, a
 
 ### What's Inside?
 
-Probably Python stuff, motly notebooks, but who knows, anything I want, really.
+Probably Python stuff, mostly notebooks, but who knows, anything I want, really.
 
 ### Contributions
 
