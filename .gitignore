@@ -1,0 +1,57 @@
+# Byte-compiled / optimized / DLL files
+
+pycache/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+dist/
+develop-eggs/
+*.egg-info
+.installed.cfg
+*.egg
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Project-specific files and directories
+*.log
+*.sqlite3
+*.csv
+.DS_Store
+.vscode/
+
+# Jupyter Notebook files
+.ipynb_checkpoints
+
+# Unit test / coverage report
+.coverage
+.tox
+
+# MyPy
+.mypy_cache/
+
+# Pytest
+.pytest_cache/
+
+# Flake8
+.flake8
+
+# Pylint
+.pylint.d
+
+# IDE-specific files
+.idea/
+*.swp
+*.swo
