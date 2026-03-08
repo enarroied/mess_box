@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 import argparse
-import sys
-from pathlib import Path
 
 from config import load_config, get_video_resolution
 from dataset import DatasetHandler
@@ -34,7 +32,7 @@ def main():
     print(f"Loading config from: {args.config}")
     config = load_config(args.config)
 
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  CSV: {config['csv_path']}")
     print(f"  Entity col: {config.get('entity_col', 'auto')}")
     print(f"  Time col: {config.get('time_col', 'auto')}")

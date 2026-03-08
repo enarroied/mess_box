@@ -1,7 +1,6 @@
 import pandas as pd
 import seaborn as sns
-from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 
 class DatasetHandler:
@@ -65,3 +64,16 @@ class DatasetHandler:
 
     def get_global_max(self) -> float:
         return self.df[self.value_col].max()
+
+    def get_longest_top_n_name(self, top_n: int = 10) -> str:
+        """
+        Find the longest entity name that ever appears in top N across all years.
+        Efficient: O(unique_entities) - just string length comparisons on top N entities.
+        """
+        entity_max_values = self.df.groupby(self.entity_col)[self.value_col].max()
+        top_entities = entity_max_values.nlargest(top_n).index.tolist()
+
+        if not top_entities:
+            return ""
+
+        return max(top_entities, key=len)
