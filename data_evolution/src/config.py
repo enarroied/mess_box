@@ -19,6 +19,7 @@ DEFAULT_CONFIG = {
     "intro_duration": 2.0,
     "outro_image": None,
     "outro_duration": 2.0,
+    "audio_track": None,  # None = silent audio, or path to audio file
     "chart": {
         "style": None,
         "title_template": "Top 10 - {year}",
@@ -73,6 +74,7 @@ def _resolve_paths(config: Dict[str, Any]) -> None:
     config["csv_path"] = resolve_path(config, config.get("csv_path"))
     config["intro_image"] = resolve_path(config, config.get("intro_image"))
     config["outro_image"] = resolve_path(config, config.get("outro_image"))
+    config["audio_track"] = resolve_path(config, config.get("audio_track"))
 
     output_dir = config["_config_dir"] / config.get("output_dir", ".")
     config["_output_dir"] = output_dir.resolve()

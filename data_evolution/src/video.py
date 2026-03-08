@@ -11,6 +11,7 @@ def make_video_from_images(
     fps: int = 30,
     target_width: int = None,
     target_height: int = None,
+    audio_track: Optional[Path] = None,
 ) -> Path:
     if not image_paths:
         raise ValueError("No images provided")
@@ -31,23 +32,63 @@ def make_video_from_images(
         width, height = _get_dimensions(image_paths[0])
         scale_filter = f"scale={width}:{height}"
 
-    (
-        ffmpeg.input(
-            str(list_file),
-            format="concat",
-            safe=0,
-            r=fps,
+    import subprocess
+
+    has_audio = audio_track and audio_track.exists()
+
+    cmd = ["ffmpeg", "-y"]
+
+    if has_audio:
+        cmd.extend(
+            ["-f", "concat", "-safe", "0", "-i", str(list_file), "-i", str(audio_track)]
         )
-        .output(
-            str(output_path),
-            vcodec="libx264",
-            pix_fmt="yuv420p",
-            vf=scale_filter,
-            preset="medium",
-            crf=23,
+    else:
+        cmd.extend(
+            [
+                "-f",
+                "concat",
+                "-safe",
+                "0",
+                "-i",
+                str(list_file),
+                "-f",
+                "lavfi",
+                "-i",
+                "anullsrc=r=44100:cl=stereo",
+            ]
         )
-        .run(overwrite_output=True, quiet=True)
+
+    cmd.extend(
+        [
+            "-vf",
+            scale_filter,
+            "-r",
+            str(fps),
+            "-c:v",
+            "libx264",
+            "-preset",
+            "medium",
+            "-crf",
+            "23",
+            "-movflags",
+            "+faststart",
+            "-profile:v",
+            "baseline",
+            "-level",
+            "3.1",
+            "-pix_fmt",
+            "yuv420p",
+        ]
     )
+
+    if has_audio:
+        cmd.extend(["-c:a", "aac", "-b:a", "128k", "-shortest"])
+    else:
+        cmd.extend(["-c:a", "aac", "-b:a", "128k", "-shortest"])
+
+    cmd.append(str(output_path))
+
+    subprocess.run(cmd, check=True, capture_output=True)
 
     list_file.unlink()
     return output_path
@@ -88,6 +129,8 @@ class VideoBuilder:
         fmt = self.config.get("format", "landscape")
         target_width, target_height = get_video_resolution(fmt)
 
+        audio_track = self.config.get("audio_track")
+
         video_path = make_video_from_images(
             frame_paths,
             output_path,
@@ -95,6 +138,7 @@ class VideoBuilder:
             fps=fps,
             target_width=target_width,
             target_height=target_height,
+            audio_track=audio_track,
         )
 
         print(f"Video created: {video_path}")
@@ -117,6 +161,9 @@ class VideoBuilder:
         target_width, target_height = get_video_resolution(fmt)
         fps = self.config.get("fps", 30)
 
+        audio_track = self.config.get("audio_track")
+        has_audio = audio_track and audio_track.exists()
+
         import subprocess
 
         inputs = []
@@ -133,6 +180,7 @@ class VideoBuilder:
 
         inputs.extend(["-i", str(video_path)])
         filter_parts.append(f"[{input_idx}:v]setsar=1[v{input_idx}]")
+        video_input_idx = input_idx
         input_idx += 1
 
         if outro_image and outro_image.exists():
@@ -147,56 +195,86 @@ class VideoBuilder:
             f"{';'.join(filter_parts)};{concat_list}concat=n={input_idx}:v=1:a=0"
         )
 
-        cmd = (
-            [
-                "ffmpeg",
-                "-y",
-                "-loop",
-                "1",
-                "-t",
-                str(intro_duration) if intro_image else "1",
-                "-framerate",
-                str(fps),
-            ]
-            + inputs
-            + [
-                "-filter_complex",
-                filter_complex,
-                "-c:v",
-                "libx264",
-                "-pix_fmt",
-                "yuv420p",
-                "-preset",
-                "medium",
-                "-crf",
-                "23",
-                str(output_path),
-            ]
-        )
+        cmd = [
+            "ffmpeg",
+            "-y",
+            "-loop",
+            "1",
+            "-t",
+            str(intro_duration) if intro_image else "1",
+            "-framerate",
+            str(fps),
+        ] + inputs
+
+        if has_audio:
+            cmd.extend(["-i", str(audio_track)])
+
+        video_output_args = [
+            "-filter_complex",
+            filter_complex,
+            "-c:v",
+            "libx264",
+            "-preset",
+            "medium",
+            "-crf",
+            "23",
+            "-movflags",
+            "+faststart",
+            "-profile:v",
+            "baseline",
+            "-level",
+            "3.1",
+            "-pix_fmt",
+            "yuv420p",
+        ]
+
+        if has_audio:
+            cmd.extend(
+                video_output_args
+                + [
+                    "-map",
+                    f"[v{video_input_idx}]",
+                    "-map",
+                    f"{video_input_idx + 1}:a",
+                    "-c:a",
+                    "aac",
+                    "-b:a",
+                    "128k",
+                    "-shortest",
+                ]
+            )
+        else:
+            cmd.extend(
+                video_output_args
+                + [
+                    "-f",
+                    "lavfi",
+                    "-i",
+                    "anullsrc=r=44100:cl=stereo",
+                    "-c:a",
+                    "aac",
+                    "-b:a",
+                    "128k",
+                    "-shortest",
+                ]
+            )
 
         if outro_image:
-            cmd[7] = "-i"
-            cmd[8] = str(outro_image)
-            cmd[9] = "-loop"
-            cmd[10] = "1"
-            cmd[11] = "-t"
-            cmd[12] = str(outro_duration)
+            cmd.extend(
+                [
+                    "-loop",
+                    "1",
+                    "-t",
+                    str(outro_duration),
+                ]
+            )
+
+        cmd.append(str(output_path))
 
         subprocess.run(cmd, check=True, capture_output=True)
 
         print(f"Video with intro/outro created: {output_path}")
         return output_path
-
-    def _create_clip_from_image(self, image_path: Path, duration: float):
-        fmt = self.config.get("format", "landscape")
-        target_width, target_height = get_video_resolution(fmt)
-        return (
-            ffmpeg.input(
-                str(image_path), loop=1, t=duration, r=self.config.get("fps", 30)
-            )
-            .filter("scale", target_width, target_height)
-            .filter("setsar", "1,1")
-        )
 
     def _save_thumbnail(self, intro_image: Path) -> Path:
         self.thumbnails_dir.mkdir(parents=True, exist_ok=True)

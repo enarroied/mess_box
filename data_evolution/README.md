@@ -7,8 +7,10 @@ Create motion chart videos from CSV datasets. Generate engaging visualizations t
 - **Generic CSV input** - Works with any dataset that has Entity, Time, and Value columns
 - **Multiple formats** - Create shorts (9:16), landscape (16:9), or square (1:1) videos
 - **Intro/Outro** - Add custom intro and outro images with configurable duration
+- **Audio support** - Add custom background music or use silent audio track
 - **Auto-thumbnail** - Automatically extracts thumbnail from intro image
 - **Configurable styling** - Custom chart styles, colors, and dynamic titles
+- **Universal compatibility** - Videos work on VLC, YouTube, X, LinkedIn
 
 ## Installation
 
@@ -75,6 +77,10 @@ intro_duration: 2.0
 # Outro (optional)
 outro_image: "./outro.png"
 outro_duration: 2.0
+
+# Audio (optional)
+audio_track: null          # null = silent audio (default)
+# audio_track: "./music.mp3"  # or path to audio file (MP3, WAV, OGG, M4A)
 
 # Chart styling
 chart:
