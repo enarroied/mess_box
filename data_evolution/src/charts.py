@@ -39,10 +39,15 @@ class ChartGenerator:
             return plt.style.context(style)
         return nullcontext()
 
-    def _get_palette(self):
-        colors = self.chart_config.get("colors")
-        if colors:
-            return colors
+    def _get_palette(self, entities: list = None):
+        custom_colors = self.chart_config.get("colors")
+        if custom_colors:
+            return custom_colors
+
+        color_map = self.dataset.color_map
+        if entities and color_map:
+            return {e: color_map.get(e, "#333333") for e in entities}
+
         return "tab20"
 
     def _format_title(self, time_value: Any) -> str:
@@ -65,7 +70,8 @@ class ChartGenerator:
             ax = fig.add_axes([0.15, 0.15, 0.8, 0.75])
 
         with self._apply_style():
-            palette = self._get_palette()
+            entities = df[self.dataset.entity_col].tolist()
+            palette = self._get_palette(entities)
 
             sns.barplot(
                 data=df,
@@ -79,6 +85,9 @@ class ChartGenerator:
             )
 
             ax.xaxis.set_major_formatter(ticker.FuncFormatter(_format_big_number))
+
+            global_max = self.dataset.get_global_max()
+            ax.set_xlim(0, global_max * 1.1)
 
             ax.spines["left"].set_position(("axes", 0))
             ax.tick_params(axis="y", which="major", pad=20)

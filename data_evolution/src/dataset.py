@@ -62,3 +62,6 @@ class DatasetHandler:
     @property
     def time_label(self) -> str:
         return self.time_col
+
+    def get_global_max(self) -> float:
+        return self.df[self.value_col].max()
