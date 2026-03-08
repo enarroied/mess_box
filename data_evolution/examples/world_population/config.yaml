@@ -1,0 +1,19 @@
+csv_path: "./data.csv"
+
+output_dir: "."
+frames_dir: "frames"
+videos_dir: "videos"
+thumbnails_dir: "thumbnails"
+
+format: "landscape"
+fps: 30
+duration_per_frame: 0.5
+
+# audio_track: null  # uses silent audio by default
+audio_track: "../../music/bensound-clearday.mp3"  # uncomment and set path for custom audio
+
+chart:
+  style: null
+  title_template: "Top 10 Countries - {Year}"
+  top_n: 10
+  colors: null
