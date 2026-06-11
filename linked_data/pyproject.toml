@@ -1,0 +1,12 @@
+[project]
+name = "linked-data"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "ipykernel>=7.3.0",
+    "pandas>=3.0.3",
+    "rdflib>=7.6.0",
+    "sparqlwrapper>=2.0.0",
+]
