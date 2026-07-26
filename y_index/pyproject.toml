@@ -8,6 +8,7 @@ dependencies = [
     "ipykernel>=7.3.0",
     "openbb>=4.7.2",
     "pandas>=3.0.5",
+    "pyarrow>=25.0.0",
 ]
 
 [dependency-groups]
