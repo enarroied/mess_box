@@ -5,7 +5,7 @@ import pandas as pd
 from openbb import obb
 
 from src.market_data import enrich_companies, enrich_with_sec
-from src.utils import load_parquet_cache, save_parquet_cache
+from src.utils import load_parquet_cache, result_to_df, save_parquet_cache
 
 
 def companies_with_letter(df, letter):
@@ -149,11 +149,13 @@ def download_index_prices(
 
     for ticker in missing:
         try:
-            prices = obb.equity.price.historical(
-                ticker,
-                provider="yfinance",
-                start_date=start_date,
-            ).to_df()
+            prices = result_to_df(
+                obb.equity.price.historical(
+                    ticker,
+                    provider="yfinance",
+                    start_date=start_date,
+                )
+            )
 
             if not prices.empty:
                 close = prices["close"].rename(ticker)
@@ -178,7 +180,7 @@ def download_index_prices(
 
         new_prices = new_prices.loc[:, ~new_prices.columns.duplicated()]
 
-        save_parquet_cache(new_prices, cache_path)
+        save_parquet_cache(new_prices, cache_path, index=True)
 
         return new_prices
 

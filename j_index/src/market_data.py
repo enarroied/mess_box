@@ -4,7 +4,7 @@ import pandas as pd
 import requests
 from openbb import obb
 
-from src.utils import load_parquet_cache, rate_limit, save_parquet_cache
+from src.utils import load_parquet_cache, rate_limit, result_to_df, save_parquet_cache
 
 SEC_HEADERS = {"User-Agent": "J Index research contact@example.com"}
 
@@ -19,11 +19,13 @@ def check_ticker_history(ticker, minimum_days=365):
     """Check if ticker has enough historical data."""
 
     try:
-        prices = obb.equity.price.historical(
-            ticker,
-            provider="yfinance",
-            start_date=(datetime.today() - timedelta(days=730)).strftime("%Y-%m-%d"),
-        ).to_df()
+        prices = result_to_df(
+            obb.equity.price.historical(
+                ticker,
+                provider="yfinance",
+                start_date=(datetime.today() - timedelta(days=730)).strftime("%Y-%m-%d"),
+            )
+        )
 
         if prices.empty:
             return {
@@ -63,11 +65,12 @@ def download_company_metadata(ticker):
 
     try:
         profile = (
-            obb.equity.profile(
-                ticker,
-                provider="yfinance",
+            result_to_df(
+                obb.equity.profile(
+                    ticker,
+                    provider="yfinance",
+                )
             )
-            .to_df()
             .iloc[0]
         )
 

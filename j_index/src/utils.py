@@ -25,7 +25,7 @@ def load_parquet_cache(cache_path, columns=None):
     return pd.DataFrame()
 
 
-def save_parquet_cache(df, cache_path):
+def save_parquet_cache(df, cache_path, index=False):
     """Save dataframe as parquet cache."""
 
     cache_path = Path(cache_path)
@@ -38,7 +38,7 @@ def save_parquet_cache(df, cache_path):
     df.to_parquet(
         cache_path,
         engine="pyarrow",
-        index=False,
+        index=index,
     )
 
 
@@ -51,3 +51,16 @@ def rate_limit(counter, every=5, pause=1):
         time.sleep(pause)
 
     return counter
+
+
+def result_to_df(result):
+    """Return a pandas DataFrame from an OBBject result.
+
+    With `output_type = "dataframe"` the OpenBB endpoints already return a
+    DataFrame, otherwise they return an OBBject with a `.to_df()` method.
+    """
+
+    if hasattr(result, "to_df"):
+        return result.to_df()
+
+    return result
