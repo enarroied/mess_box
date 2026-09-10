@@ -1,0 +1,12 @@
+[project]
+name = "kobo"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "ipykernel>=7.3.0",
+    "pandas>=3.0.3",
+    "python-dotenv>=1.2.3",
+    "requests>=2.34.2",
+]
