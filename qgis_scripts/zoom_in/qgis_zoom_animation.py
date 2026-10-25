@@ -15,6 +15,8 @@ printed at the end).
 """
 
 import os
+import shutil
+import subprocess
 
 from qgis.core import (
     QgsCoordinateReferenceSystem,
@@ -34,8 +36,8 @@ from qgis.PyQt.QtGui import QImage, QPainter
 
 # Center point of the zoom, in plain longitude/latitude (EPSG:4326 - WGS84),
 # i.e. the numbers you'd copy out of Google Maps or "Copy coordinates".
-CENTER_LON = 1.849704
-CENTER_LAT = 42.934394
+CENTER_LON = -3.80182306
+CENTER_LAT = 41.13032946
 
 # --------------------------------------------------------------------------
 # DEFAULTS - override if you want, otherwise leave as-is
@@ -116,6 +118,37 @@ def render_frame(extent: QgsRectangle, layers, crs, out_path: str) -> None:
     image.save(out_path)
 
 
+def make_video(frames_dir: str, fps: int, out_path: str) -> None:
+    ffmpeg = shutil.which("ffmpeg")
+    if ffmpeg is None:
+        print(
+            "ffmpeg not found on PATH - skipping video creation.\n"
+            f"Encode manually with:\n"
+            f'  ffmpeg -framerate {fps} -i "{frames_dir}/frame_%04d.png" '
+            f'-c:v libx264 -pix_fmt yuv420p "{out_path}"'
+        )
+        return
+
+    cmd = [
+        ffmpeg,
+        "-y",  # overwrite output
+        "-framerate",
+        str(fps),
+        "-i",
+        os.path.join(frames_dir, "frame_%04d.png"),
+        "-c:v",
+        "libx264",
+        "-pix_fmt",
+        "yuv420p",  # broad player compatibility
+        "-crf",
+        "18",  # quality (lower = better)
+        out_path,
+    ]
+    print("Running:", " ".join(cmd))
+    subprocess.run(cmd, check=True)
+    print(f"Video written to {out_path}")
+
+
 def main() -> None:
     project = QgsProject.instance()
 
@@ -156,6 +189,9 @@ def main() -> None:
         render_frame(extent, layers, crs, out_path)
 
     print(f"Done. {NUM_FRAMES} frames written to {OUTPUT_DIR}")
+
+    video_path = os.path.join(OUTPUT_DIR, "zoom.mp4")
+    make_video(OUTPUT_DIR, FPS, video_path)
 
 
 main()
