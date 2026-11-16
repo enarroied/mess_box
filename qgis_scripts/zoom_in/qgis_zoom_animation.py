@@ -36,8 +36,8 @@ from qgis.PyQt.QtGui import QImage, QPainter
 
 # Center point of the zoom, in plain longitude/latitude (EPSG:4326 - WGS84),
 # i.e. the numbers you'd copy out of Google Maps or "Copy coordinates".
-CENTER_LON = -3.80182306
-CENTER_LAT = 41.13032946
+CENTER_LON = 1.63825473
+CENTER_LAT = 42.93809601
 
 # --------------------------------------------------------------------------
 # DEFAULTS - override if you want, otherwise leave as-is
